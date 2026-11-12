@@ -52,7 +52,7 @@ See [User Manual.pdf](User%20Manual.pdf), and [SECURITY_SETUP.md](SECURITY_SETUP
 
 ## Credits and license
 - **Created By Samin Easar** — A young tech enthusiast passionate about AI, programming, cybersecurity, and robotics, always eager to learn, innovate, and build the future.
-Please consult the included [LICENSE](LICENSE) and upstream attribution before using or redistributing this project. Preserve copyright and license notices.
+- Please consult the included [LICENSE](LICENSE) and upstream attribution before using or redistributing this project. Preserve copyright and license notices.
 
 ---
 
