@@ -2,8 +2,6 @@
 
 A desktop AI assistant project with voice interaction, a graphical interface, computer automation, browser tools, memory, and an optional remote dashboard.
 
-> **Project note:** The supplied source package identifies the application as **MARK LVI** and credits its original project author, **FatihMakes**. This repository is a packaged copy of that project; retain the original notices and license when redistributing or modifying it.
-
 ## Features
 
 - Voice-based interaction and configurable AI providers
