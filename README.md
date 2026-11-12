@@ -1,4 +1,4 @@
-# AI Agent for Windows
+# A Smart desktop
 
 A desktop AI assistant project with voice interaction, a graphical interface, computer automation, browser tools, memory, and an optional remote dashboard.
 
