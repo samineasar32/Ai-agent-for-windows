@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS — Security &amp; Privacy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#07090f; --surface:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.07);
+      --accent:#6366f1; --adim:rgba(99,102,241,0.14); --text:#dde3ed; --muted:#5e6a7e;
+      --green:#22c55e; --gdim:rgba(34,197,94,0.14); --red:#ef4444; --rdim:rgba(239,68,68,0.13);
+      --amber:#f59e0b;
+    }
+    html, body { min-height:100%; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    header { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:10px;
+      padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(7,9,15,0.96); }
+    .logo { font-weight:800; letter-spacing:2px; font-size:15px; }
+    .logo em { color:var(--accent); font-style:normal; }
+    .spacer { flex:1; }
+    a.back { color:var(--muted); text-decoration:none; font-size:13px; border:1px solid var(--border);
+      padding:6px 12px; border-radius:10px; }
+    a.back:hover { color:var(--accent); border-color:var(--accent); }
+    main { max-width:860px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 16px; }
+    .card h2 { font-size:11px; letter-spacing:2px; color:var(--muted); margin-bottom:10px; font-weight:700; }
+    .row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0; }
+    .badge { font-size:11px; font-weight:800; letter-spacing:1px; padding:4px 10px; border-radius:99px; }
+    .ok    { background:var(--gdim); color:var(--green); }
+    .bad   { background:var(--rdim); color:var(--red); }
+    .warn  { background:rgba(245,158,11,0.14); color:var(--amber); }
+    .dim   { background:var(--surface); color:var(--muted); }
+    button { background:var(--adim); color:var(--accent); border:1px solid rgba(99,102,241,0.35);
+      padding:8px 14px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; }
+    button:hover { filter:brightness(1.2); }
+    button.danger { background:var(--rdim); color:var(--red); border-color:rgba(239,68,68,0.35); }
+    button:disabled { opacity:0.4; cursor:not-allowed; }
+    label.tgl { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; }
+    input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; }
+    input[type=password], input[type=text] { background:rgba(0,0,0,0.3); border:1px solid var(--border);
+      color:var(--text); padding:8px 10px; border-radius:10px; font-size:13px; width:180px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { text-align:left; font-size:10px; letter-spacing:1.5px; color:var(--muted); padding:6px 8px;
+      border-bottom:1px solid var(--border); }
+    td { padding:7px 8px; border-bottom:1px solid var(--border); }
+    .note { font-size:11px; color:var(--muted); line-height:1.5; }
+    #log { font-size:11px; color:var(--muted); line-height:1.7; max-height:150px; overflow-y:auto; }
+    #msg { position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+      background:var(--surface); border:1px solid var(--border); padding:9px 18px;
+      border-radius:99px; font-size:12px; opacity:0; transition:opacity .25s; pointer-events:none; }
+    #msg.show { opacity:1; }
+    .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><em>J</em>ARVIS · SECURITY &amp; PRIVACY</div>
+  <div class="spacer"></div>
+  <a class="back" href="/">← Dashboard</a>
+</header>
+<main>
+  <div class="card">
+    <h2>SECURITY STATUS</h2>
+    <div class="row" id="status-row"><span class="badge dim">LOADING…</span></div>
+  </div>
+
+  <div class="card">
+    <h2>PRIVACY MODE</h2>
+    <div class="row">
+      <button id="mode-open" onclick="setMode('open')">OPEN VOICE MODE</button>
+      <button id="mode-strict" onclick="setMode('strict')">STRICT PRIVACY MODE</button>
+    </div>
+    <p class="note">Open: anyone may talk; sensitive operations need authorization once an identity is enrolled.
+       Strict: face + voice both required; leaving the camera view or a camera disconnect locks sensitive operations.</p>
+  </div>
+
+  <div class="card">
+    <h2>CAMERA &amp; FACE SECURITY <span id="cam-dot" class="dot" style="background:#444"></span><span id="cam-state" class="note">OFF</span></h2>
+    <div class="row">
+      <label class="tgl"><input type="checkbox" id="cam-perm" onchange="upd('camera_permission', this.checked)"> Camera permission</label>
+      <label class="tgl"><input type="checkbox" id="face-track" onchange="upd('face_tracking_enabled', this.checked)"> Face tracking</label>
+      <label class="tgl"><input type="checkbox" id="face-recog" onchange="upd('face_recognition_enabled', this.checked)"> Face recognition</label>
+    </div>
+    <div class="row">
+      <label class="tgl"><input type="checkbox" id="cam-loss" onchange="upd('camera_loss_shutdown', this.checked)"> Shut down the assistant if the camera is turned off / disconnected</label>
+    </div>
+    <div class="row" id="face-row"></div>
+    <div class="row">
+      <button onclick="act('register_face')">REGISTER FACE</button>
+      <button class="danger" onclick="delId('face')">DELETE FACE DATA</button>
+      <span class="note" id="reg-face-msg"></span>
+    </div>
+    <p class="note">All face processing is local. The camera only runs with permission + a face feature enabled, and the red dot above (and the HUD indicator) show whenever it is live.</p>
+  </div>
+
+  <div class="card">
+    <h2>VOICE SECURITY</h2>
+    <div class="row">
+      <label class="tgl"><input type="checkbox" id="voice-on" onchange="upd('voice_verification_enabled', this.checked)"> Voice verification</label>
+      <span id="voice-badge" class="badge dim">NOT VERIFIED</span>
+    </div>
+    <div class="row">
+      <button onclick="act('register_voice')">REGISTER VOICE</button>
+      <button class="danger" onclick="delId('voice')">DELETE VOICE DATA</button>
+      <span class="note" id="reg-voice-msg"></span>
+    </div>
+    <p class="note">Speaker identity is verified locally, separate from speech recognition. Voice alone never authorizes sensitive operations.</p>
+  </div>
+
+  <div class="card">
+    <h2>BACKUP PIN &amp; EMERGENCY LOCK</h2>
+    <div class="row">
+      <input type="password" id="pin" placeholder="PIN / password">
+      <button onclick="setPin()">SET PIN</button>
+      <button onclick="unlockPin()">UNLOCK WITH PIN</button>
+      <button class="danger" onclick="act('emergency_lock')">⚠ EMERGENCY LOCK</button>
+    </div>
+    <p class="note" id="pin-note"></p>
+  </div>
+
+  <div class="card">
+    <h2>DRIVE PERMISSION MANAGEMENT</h2>
+    <div class="row">
+      <label class="tgl"><input type="checkbox" id="drv-prot" onchange="driveProtection(this.checked)">
+        Drive protection — ON means every drive is DENIED until you grant it</label>
+    </div>
+    <table id="drv-table">
+      <thead><tr><th>DRIVE</th><th>ACCESS</th><th>READ</th><th>WRITE</th><th>CREATE</th><th>EDIT</th><th>DELETE</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note">Enforced programmatically on every file operation and shell command — not just in this UI. Revoking takes effect immediately. Path traversal and symlink escapes are blocked.</p>
+  </div>
+
+  <div class="card">
+    <h2>SECURITY LOG</h2>
+    <div id="log">No events.</div>
+  </div>
+</main>
+<div id="msg"></div>
+<script>
+  const tok = sessionStorage.getItem('jarvis_token');
+  if (!tok) location.replace('/login');
+  const H = { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' };
+  let busy = false, lastDrives = '';
+
+  function toast(t) {
+    const m = document.getElementById('msg');
+    m.textContent = t; m.classList.add('show');
+    setTimeout(() => m.classList.remove('show'), 3000);
+  }
+  function esc(s) { const d = document.createElement('div'); d.textContent = String(s ?? ''); return d.innerHTML; }
+  function badge(txt, cls) { return `<span class="badge ${cls}">${esc(txt)}</span>`; }
+  function pinBody(extra) {
+    const p = document.getElementById('pin').value;
+    return Object.assign({ pin: p }, extra || {});
+  }
+
+  async function api(body) {
+    const r = await fetch('/api/security', { method: 'POST', headers: H, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    toast(j.message || j.error || (j.ok ? 'Done.' : 'Failed.'));
+    refresh();
+    return j;
+  }
+  function act(action, extra) { return api(Object.assign({ action }, extra || {})); }
+  function upd(key, val) { return api({ action: 'update_settings', fields: { [key]: val }, pin: document.getElementById('pin').value }); }
+  function setMode(mode) { return api(pinBody({ action: 'set_mode', mode })); }
+  function setPin() {
+    const p = document.getElementById('pin').value;
+    if (p.length < 4) { toast('PIN must be at least 4 characters.'); return; }
+    api({ action: 'set_pin', new_pin: p }).then(j => { if (j.ok) document.getElementById('pin').value = ''; });
+  }
+  function unlockPin() { return api(pinBody({ action: 'unlock_pin' })); }
+  function delId(what) {
+    if (!confirm('Delete enrolled ' + what + ' data?')) return;
+    return api(pinBody({ action: 'delete_identity', what }));
+  }
+  function driveProtection(on) {
+    if (on && !confirm('Enable drive protection? ALL drives will be DENIED until you grant them explicitly.')) {
+      document.getElementById('drv-prot').checked = false; return;
+    }
+    return api(pinBody({ action: 'drive_protection', enabled: on }));
+  }
+  function drivePerm(letter, perms) {
+    return api(pinBody({ action: 'drive_permission', drive: letter, perms }));
+  }
+
+  function renderDrives(d) {
+    const snap = JSON.stringify(d);
+    if (snap === lastDrives) return;
+    lastDrives = snap;
+    const tb = document.querySelector('#drv-table tbody');
+    tb.innerHTML = '';
+    const ops = ['read', 'write', 'create', 'edit', 'delete'];
+    for (const det of d.detected) {
+      const L = det.drive, p = d.policy[L] || {};
+      const tr = document.createElement('tr');
+      let html = `<td><b>${esc(L)}:</b> <span class="note">${esc(det.label || det.type)}</span></td>`;
+      html += `<td><button class="${p.access ? '' : 'danger'}" onclick="drivePerm('${L}', {access:${!p.access}})">${p.access ? 'ALLOWED' : 'DENIED'}</button></td>`;
+      for (const op of ops) {
+        html += `<td><input type="checkbox" ${p[op] ? 'checked' : ''} ${p.access ? '' : 'disabled'}
+                 onchange="drivePerm('${L}', {${op}:this.checked})"></td>`;
+      }
+      tr.innerHTML = html;
+      tb.appendChild(tr);
+    }
+  }
+
+  async function refresh() {
+    if (busy) return; busy = true;
+    try {
+      const r = await fetch('/api/security', { headers: H });
+      if (r.status === 401) { location.replace('/login'); return; }
+      const s = await r.json();
+      const priv = s.privacy, face = s.face, voice = s.voice, cam = s.camera;
+      const locked = priv.privacy_locked || priv.emergency_locked;
+      const dual = face.authorized_present && voice.verified;
+      document.getElementById('status-row').innerHTML =
+        badge('AUTH: ' + (dual ? 'VERIFIED' : priv.pin_active ? 'PIN WINDOW' : 'NOT VERIFIED'), dual || priv.pin_active ? 'ok' : 'warn') +
+        badge('PRIVACY: ' + (locked ? 'LOCKED' : 'UNLOCKED'), locked ? 'bad' : 'ok') +
+        badge('MODE: ' + priv.mode.toUpperCase(), 'dim') +
+        (face.unknown_present ? badge('⚠ UNKNOWN PERSON', 'bad') : '');
+      document.getElementById('mode-open').disabled = priv.mode === 'open';
+      document.getElementById('mode-strict').disabled = priv.mode === 'strict';
+      setChk('cam-perm', cam.permission); setChk('face-track', face.tracking_enabled);
+      setChk('cam-loss', cam.loss_shutdown !== false);
+      setChk('face-recog', face.recognition_enabled); setChk('voice-on', voice.enabled);
+      setChk('drv-prot', s.drives.protection_enabled);
+      document.getElementById('cam-dot').style.background = cam.active ? '#ef4444' : '#444';
+      document.getElementById('cam-state').textContent = String(cam.status).toUpperCase();
+      document.getElementById('face-row').innerHTML =
+        badge(face.registered ? 'USER REGISTERED' : 'NOT REGISTERED', face.registered ? 'ok' : 'dim') +
+        badge('PRESENCE: ' + (face.authorized_present ? 'DETECTED' : 'NOT DETECTED'), face.authorized_present ? 'ok' : 'dim') +
+        `<span class="note">Head: ${esc(face.head_direction || '—')} · ${esc(face.movement || '—')}</span>`;
+      const vb = document.getElementById('voice-badge');
+      vb.textContent = voice.verified ? 'VERIFIED' : 'NOT VERIFIED';
+      vb.className = 'badge ' + (voice.verified ? 'ok' : 'warn');
+      document.getElementById('pin-note').textContent =
+        (priv.pin_set ? 'PIN is set. Enter it above to authorize protected changes from this device.' : 'No PIN set — a backup PIN is strongly recommended.') +
+        (priv.pin_active ? ' PIN window ACTIVE.' : '');
+      renderDrives(s.drives);
+      if (s.notifications && s.notifications.length) {
+        document.getElementById('log').innerHTML = s.notifications.slice(-12).reverse()
+          .map(n => `<div>[${new Date(n.time * 1000).toLocaleTimeString()}] ${esc(n.message)}</div>`).join('');
+      }
+    } catch (e) { /* server offline — keep last state */ }
+    finally { busy = false; }
+  }
+  function setChk(id, v) {
+    const el = document.getElementById(id);
+    if (document.activeElement !== el) el.checked = !!v;
+  }
+
+  // Live push events (registration progress, lock alerts) over the existing WS.
+  try {
+    const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?token=' + encodeURIComponent(tok));
+    ws.onmessage = ev => {
+      try {
+        const m = JSON.parse(ev.data);
+        if (m.type !== 'security') return;
+        if (m.kind === 'register_face') document.getElementById('reg-face-msg').textContent = `${m.done}/${m.total} ${m.message || ''}`;
+        else if (m.kind === 'register_voice') document.getElementById('reg-voice-msg').textContent = `${m.done}/${m.total} ${m.message || ''}`;
+        else if (m.message) toast(m.message);
+        refresh();
+      } catch (e) {}
+    };
+  } catch (e) {}
+
+  refresh();
+  setInterval(refresh, 2500);
+</script>
+</body>
+</html>
