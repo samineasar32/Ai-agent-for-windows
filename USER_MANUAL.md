@@ -832,14 +832,10 @@ Mark-LVI-main/
 ---
 
 ## 20. Credits and license
-
-- **Mark LVI** — built by **FatihMakes** (setup video and updates on YouTube:
-  https://www.youtube.com/@FatihMakes).
+- **Created By Samin Easar** — A young tech enthusiast passionate about AI, programming, cybersecurity, and robotics, always eager to learn, innovate, and build the future.
 - **Security & Privacy upgrade** — face/voice security, privacy modes, drive
   permission management and automatic protection, added without removing or
   changing any existing feature.
-- License: **CC BY-NC 4.0** — free for personal, non-commercial use with
-  attribution. See `LICENSE`.
 
 *Enjoy your assistant — and remember: the camera only runs when you say so,
 and every drive stays denied until you tick the boxes yourself.*
