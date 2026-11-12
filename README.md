@@ -35,7 +35,7 @@ A desktop AI assistant project with voice interaction, a graphical interface, co
 4. Start the application using the entry point documented in the included user manual.
 5. Add your own provider credentials locally when prompted or through the application's settings.
 
-See [USER_MANUAL.md](USER_MANUAL.md), [User Manual.pdf](User%20Manual.pdf), and [SECURITY_SETUP.md](SECURITY_SETUP.md) for detailed guidance.
+See [User Manual.pdf](User%20Manual.pdf), and [SECURITY_SETUP.md](SECURITY_SETUP.md) for detailed guidance.
 
 ## Security
 
